@@ -275,6 +275,8 @@ export const server = http.createServer(async (req, res) => {
   });
 });
 
+export default server;
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   server.listen(port, () => console.log(`KnowRight running at http://localhost:${port}`));
 }

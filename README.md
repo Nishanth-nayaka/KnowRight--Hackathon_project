@@ -13,7 +13,7 @@ The server reads `.env` directly. In PowerShell, you can also set `$env:GROQ_API
 
 ## Deploy on Vercel
 
-Vercel uses the root `server.ts` entry to start the shared Node HTTP server. The existing `npm start` command still runs `server.js` for local development. Vercel serves files from `public/` as static assets.
+Vercel uses the default-exported HTTP server in the root `server.js` entry. The existing `npm start` command runs the same file for local development. Vercel serves files from `public/` as static assets.
 
 Import the project with its root directory as the project root, then add `GROQ_API_KEY` in the Vercel project's Environment Variables for each deployment environment you use. Optionally add `GROQ_MODEL`. Do not upload or commit `.env`; Vercel injects configured values into `process.env`. Redeploy after adding or changing environment variables.
 
