@@ -11,6 +11,12 @@ A text-first civic information app with four AI workflows: explain an official d
 
 The server reads `.env` directly. In PowerShell, you can also set `$env:GROQ_API_KEY='your-key'` before `npm start`. Never put the key in browser code or commit `.env`.
 
+## Deploy on Vercel
+
+Vercel uses the root `server.ts` entry to start the shared Node HTTP server. The existing `npm start` command still runs `server.js` for local development. Vercel serves files from `public/` as static assets.
+
+Import the project with its root directory as the project root, then add `GROQ_API_KEY` in the Vercel project's Environment Variables for each deployment environment you use. Optionally add `GROQ_MODEL`. Do not upload or commit `.env`; Vercel injects configured values into `process.env`. Redeploy after adding or changing environment variables.
+
 ## Workflows and trust
 
 - **Document explainer:** accepts pasted text up to 40,000 characters or a PDF up to 8 MB. PDF text is extracted locally and sent to Groq as text; image-only/scanned PDFs are not supported. The prompt confines the explanation to submitted material and calls out absent details.

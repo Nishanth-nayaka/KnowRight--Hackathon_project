@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check public/app.js && node --check public/learn-law-content.js",
+    "check": "node --check server.js && node --check server.ts && node --check public/app.js && node --check public/learn-law-content.js",
     "test": "node --test"
   },
   "dependencies": {

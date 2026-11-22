@@ -245,7 +245,7 @@ export async function answer(body, { apiKey = process.env.GROQ_API_KEY, model = 
   } finally { clearTimeout(timer); }
 }
 
-const server = http.createServer(async (req, res) => {
+export const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   if (req.method === 'GET' && url.pathname === '/api/health') return send(res, 200, { ok: true, aiConfigured: Boolean(process.env.GROQ_API_KEY) });
   if (req.method === 'POST' && url.pathname === '/api/assist') {
