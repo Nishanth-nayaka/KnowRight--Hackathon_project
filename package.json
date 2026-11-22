@@ -1,0 +1,17 @@
+{
+  "name": "knowright-phase1",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.16"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check public/app.js && node --check public/learn-law-content.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "pdf-parse": "^2.4.5"
+  }
+}
