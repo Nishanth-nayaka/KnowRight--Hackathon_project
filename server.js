@@ -2,7 +2,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { PDFParse } from 'pdf-parse';
+import { extractPdfText } from './pdf-text-extractor.js';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(root, 'public');
@@ -136,14 +136,10 @@ export async function answer(body, { apiKey = process.env.GROQ_API_KEY, model = 
       if (!match || typeof name !== 'string' || !name.trim() || name.length > 180 || /[\r\n\\/]/.test(name) || input.file.data.length > maxBody || decoded.length > 8 * 1024 * 1024 || !decoded.subarray(0, 1024).includes(Buffer.from('%PDF-'))) {
         throw Object.assign(new Error('Upload a valid PDF under 8 MB, or paste its text.'), { status: 400 });
       }
-      const parser = new PDFParse({ data: decoded });
       try {
-        const extracted = await parser.getText();
-        documentText = typeof extracted.text === 'string' ? extracted.text.trim() : '';
+        documentText = await extractPdfText(decoded);
       } catch {
         throw Object.assign(new Error('This PDF could not be read. Try a text-based PDF or paste its text.'), { status: 400 });
-      } finally {
-        await parser.destroy();
       }
       if (!documentText) throw Object.assign(new Error('This PDF has no selectable text. Paste its text or use a text-based PDF.'), { status: 422 });
       if (documentText.length > 100000) throw Object.assign(new Error('This PDF contains too much extracted text. Paste the relevant section instead.'), { status: 413 });

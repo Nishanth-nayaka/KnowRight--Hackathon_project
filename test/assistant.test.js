@@ -1,5 +1,6 @@
 ﻿import test from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { answer, collectCitations, collectSituationCitations } from '../server.js';
 
 const citation = { type: 'url_citation', url_citation: { title: 'Official source', url: 'https://example.gov.in/info' } };
@@ -58,6 +59,28 @@ test('document workflow extracts validated PDF text before sending it to Groq', 
   assert.match(requests[0].body.input, /My note/);
   assert.doesNotMatch(JSON.stringify(requests[0].body), /input_file|notice.pdf/);
   await assert.rejects(answer({ mode: 'explain', file: { name: 'fake.pdf', data: 'data:application/pdf;base64,SGVsbG8=' } }, { apiKey: 'test-secret', fetchImpl }), { status: 400 });
+  const malformedPdf = Buffer.from('%PDF-1.4\nnot a PDF body');
+  await assert.rejects(answer({ mode: 'explain', file: { name: 'invalid.pdf', data: `data:application/pdf;base64,${malformedPdf.toString('base64')}` } }, { apiKey: 'test-secret', fetchImpl }), err => err.status === 400 && /This PDF could not be read/.test(err.message));
+  assert.equal(requests.length, 1);
+});
+
+test('PDF text extraction works without canvas or browser rendering globals', () => {
+  const pdf = makePdf('Serverless text extraction.');
+  const moduleUrl = new URL('../pdf-text-extractor.js', import.meta.url).href;
+  const script = `
+    import Module from 'node:module';
+    for (const name of ['DOMMatrix', 'ImageData', 'Path2D']) delete globalThis[name];
+    const originalLoad = Module._load;
+    Module._load = function (specifier, parent, isMain) {
+      if (specifier === '@napi-rs/canvas') throw new Error('canvas unavailable in test');
+      return originalLoad.call(this, specifier, parent, isMain);
+    };
+    const { extractPdfText } = await import(${JSON.stringify(moduleUrl)});
+    const text = await extractPdfText(Buffer.from(${JSON.stringify(pdf.toString('base64'))}, 'base64'));
+    if (!text.includes('Serverless text extraction.')) throw new Error('PDF text was not extracted');
+  `;
+  const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
 });
 
 test('citation extraction only returns http and https URL annotations', () => {
